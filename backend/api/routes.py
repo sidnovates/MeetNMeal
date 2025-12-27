@@ -10,11 +10,14 @@ from .schemas import (
 from .session_store import (
     create_group,
     add_user,
-    GROUPS,
+    submit_preferences,
+    group_status,
+    compute_group_choice,
+    getComputedResult
 )
 from src import shared
 
-from src.recommendor import recommend_group
+
 
 router = APIRouter()
 
@@ -56,11 +59,10 @@ def submit_preferences_api(
     """
     Stores preferences for a user and marks them as ready.
     """
-    GROUPS[group_id]["participants"][user_id]["preferences"] = prefs.dict()
-    GROUPS[group_id]["participants"][user_id]["ready"] = True
 
-    return {"status": "submitted"}
-
+    # GROUPS[group_id]["participants"][user_id]["preferences"] = prefs.dict()
+    # GROUPS[group_id]["participants"][user_id]["ready"] = True
+    return submit_preferences(group_id, user_id, prefs)
 
 # ─────────────────────────────────────────────
 # 📊 Group Status
@@ -70,14 +72,7 @@ def group_status_api(group_id: str):
     """
     Returns total users and how many are ready.
     """
-    participants = GROUPS[group_id]["participants"]
-    ready_count = sum(p["ready"] for p in participants.values())
-
-    return {
-        "total": len(participants),
-        "ready": ready_count,
-    }
-
+    return group_status(group_id)
 
 # ─────────────────────────────────────────────
 # ⚙️ Compute Group Recommendation
@@ -88,29 +83,7 @@ def compute_group_api(group_id: str):
     Runs group recommendation once all users are ready.
     """
 
-    users = [
-        p["preferences"]
-        for p in GROUPS[group_id]["participants"].values()
-        if p["ready"] and p["preferences"]
-    ]
-
-    if not users:
-        raise HTTPException(
-            status_code=400,
-            detail="No ready users with preferences",
-        )
-
-    # Recommend
-    result = recommend_group(
-        df_full=shared.zomato_unique,
-        coord_dict=shared.coord_dict,
-        users_list=users,
-        top_k=10,
-    )
-
-    GROUPS[group_id]["result"] = result
-
-    return {"status": "computed"}
+    return compute_group_choice(group_id)
 
 
 # ─────────────────────────────────────────────
@@ -122,10 +95,7 @@ def fetch_result_api(group_id: str):
     Returns top-k restaurant recommendations for the group.
     """
 
-    if GROUPS[group_id]["result"] is None:
-        raise HTTPException(status_code=404, detail="Result not computed yet")
-
-    df = GROUPS[group_id]["result"]
+    df = getComputedResult(group_id)
 
     filtered_df = df[
         [
@@ -160,3 +130,4 @@ def fetch_result_api(group_id: str):
     restaurants = filtered_df.to_dict(orient="records")
 
     return {"restaurants": restaurants}
+

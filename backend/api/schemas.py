@@ -1,3 +1,5 @@
+## Schema for API responses (How messages should be recieved from the client or sent to the client)
+
 from pydantic import BaseModel
 from typing import List, Optional
 

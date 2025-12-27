@@ -4,9 +4,13 @@ import pickle
 import pandas as pd
 import os
 
+import os
+import asyncio
+
 from src.distanceCal import load_location_coordinates
 from src import shared
 from api.routes import router
+from api.session_store import cleanup_expired_groups
 
 app = FastAPI(title="MeetNMeal API")
 app.include_router(router)
@@ -31,5 +35,16 @@ def load_assets():
     )
 
     print("All Assests Loaded Sucessfully !")
+
+    # Start background cleanup task
+    asyncio.create_task(run_cleanup_loop())
+
+## Checks every 2 minutes whether any group is expired or not
+async def run_cleanup_loop():
+    while True:
+        await asyncio.sleep(120) # Run every 2 mins
+        count = cleanup_expired_groups()
+        if count > 0:
+            print(f"Cleaned up {count} expired groups.")
 
 
