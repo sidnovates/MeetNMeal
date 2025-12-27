@@ -10,11 +10,14 @@ from .schemas import (
 from .session_store import (
     create_group,
     add_user,
+    GROUPS,
 )
+from src import shared
 
 from src.recommendor import recommend_group
 
 router = APIRouter()
+
 
 
 # ─────────────────────────────────────────────
@@ -87,7 +90,7 @@ def compute_group_api(group_id: str):
 
     users = [
         p["preferences"]
-        for p in group["participants"].values()
+        for p in GROUPS[group_id]["participants"].values()
         if p["ready"] and p["preferences"]
     ]
 
@@ -99,8 +102,8 @@ def compute_group_api(group_id: str):
 
     # Recommend
     result = recommend_group(
-        df_full=zomato_unique,
-        coord_dict=coord_dict,
+        df_full=shared.zomato_unique,
+        coord_dict=shared.coord_dict,
         users_list=users,
         top_k=10,
     )

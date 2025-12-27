@@ -21,6 +21,8 @@ from src.scoring import (
     apply_final_score
 )
 
+from src import shared
+
 def get_final_recommendations_with_distance(
     # df_full, 
     top30_df, user_lat, user_lng, coord_dict, top_k=10
@@ -94,7 +96,7 @@ def recommend_group(df_full, coord_dict, users_list, top_k=10):
     df = apply_weighted_rest_type_scoring(df, rest_counter)
     df = apply_rating_score(df)               # unchanged
     df = apply_cost_score(df, group_budget)   # unchanged
-    df = apply_weighted_dish_score(df, dish_counter, vectorizer, tfidf_matrix)
+    df = apply_weighted_dish_score(df, dish_counter, shared.vectorizer, shared.tfidf_matrix)
 
     # 4. Base scoring to pick top 30
     df = apply_final_score(df)

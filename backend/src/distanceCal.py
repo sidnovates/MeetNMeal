@@ -2,6 +2,8 @@ import numpy as np
 import math
 import pandas as pd
 
+from src import shared
+
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # earth radius in KM
 
@@ -50,7 +52,7 @@ def find_closest_branch(restaurant_name, user_lat, user_lng, coord_dict):
     # DATA_PATH = os.path.join(BASE_DIR, "data", "zomato_allBranches.pkl")
     # zomato = pd.read_pickle(DATA_PATH)
     
-    branches = zomato[zomato["name"] == restaurant_name]
+    branches = shared.zomato[shared.zomato["name"] == restaurant_name]
 
     best_branch = None
     best_distance = float("inf")

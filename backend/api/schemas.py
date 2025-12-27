@@ -10,7 +10,7 @@ class JoinGroupResponse(BaseModel):
 class UserPreference(BaseModel):
     cuisines: List[str]
     rest_type: List[str]
-    dist_pref: List[str]
+    dish_pref: List[str]
     budget: int
     lat:float
     lng:float
