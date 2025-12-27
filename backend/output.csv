@@ -1,0 +1,11 @@
+name,cuisines,rest_type,approx_cost(for two people),location,distance_km,distance_score,final_score_adjusted
+ECHOES Koramangala,"['continental', 'chinese', 'italian', 'american', 'north_indian']","['casual_dining', 'cafe']",750,Koramangala 5th Block,2.242450916409261,0.30840867781197284,0.7813812143273754
+Pipabu,"['chinese', 'italian', 'continental']",['casual_dining'],750,Koramangala 4th Block,2.0818302594525075,0.3244825041654474,0.7345586584909198
+Embers - Nandhana Grand Hotel,"['continental', 'chinese', 'thai', 'south_indian', 'north_indian']",['casual_dining'],900,Koramangala 6th Block,2.0877984856182925,0.32385533079881756,0.6806564181926809
+Smoke - The Sizzler House,"['continental', 'bbq', 'chinese', 'italian', 'thai', 'steak']",['casual_dining'],1100,Koramangala 7th Block,1.7268201792860274,0.36672751932686426,0.6728049878291268
+Cafe Mondo,"['pizza', 'chinese', 'italian', 'cafe']","['casual_dining', 'cafe']",700,HSR,3.045968042738783,0.24715963879019748,0.6373363833375338
+Xian,"['chinese', 'thai']",['casual_dining'],800,Ulsoor,5.148450969902316,0.16264259158854244,0.6337911290876946
+Once Upon a Rooftop,"['pizza', 'chinese', 'italian', 'thai']","['casual_dining', 'bar']",1000,Jayanagar,4.935734787513951,0.168471138923447,0.6208275544249571
+Berrylicious Cafe,"['ice_cream', 'pizza', 'cafe', 'continental', 'desserts', 'chinese', 'north_indian']","['casual_dining', 'cafe']",900,MG Road,5.458078121292363,0.15484482863454185,0.6151442811258073
+La Casa,"['chinese', 'italian', 'continental', 'north_indian']",['casual_dining'],800,Jayanagar,4.935734787513951,0.168471138923447,0.6088781106060527
+Soul City,"['continental', 'thai', 'chinese', 'italian', 'north_indian', 'seafood']",['casual_dining'],2000,Lavelle Road,5.317279599755023,0.15829598551230484,0.6082904440784105

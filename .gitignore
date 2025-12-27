@@ -1,0 +1,8 @@
+# Ignore all files in the venv directory
+venv/
+
+#Ignore Pycache Files
+__pycache__
+
+#Ignore Data Files
+backend/data
