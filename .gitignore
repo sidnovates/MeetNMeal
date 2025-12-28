@@ -6,3 +6,9 @@ __pycache__
 
 #Ignore Data Files
 backend/data
+
+#Ignore Node Modules
+node_modules
+
+package-lock.json
+package.json
