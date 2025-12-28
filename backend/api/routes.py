@@ -160,6 +160,11 @@ async def websocket_endpoint(websocket: WebSocket, group_id: str, user_id: str):
     await manager.connect(websocket, group_id)
     try:
         while True:
+            ## waits for msg from client forever when connected
+            ## when the client disconnects due to reasons like refreshing a browser, closing a tab,etc.abs
+            ## client sends WebSocketDisconnect event and this is caught in the except block
+            ## we then remove the client from the group
+            
             # Keep connection alive; currently we only push from server
             data = await websocket.receive_text()
     except WebSocketDisconnect:
