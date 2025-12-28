@@ -7,7 +7,16 @@ from .schemas import (
     RecommendationResponse,
 )
 
-from .session_store import (
+# from .session_store import (
+#     create_group,
+#     add_user,
+#     submit_preferences,
+#     group_status,
+#     compute_group_choice,
+#     getComputedResult
+# )
+
+from .session_redis import (
     create_group,
     add_user,
     submit_preferences,

@@ -1,80 +1,91 @@
-## Without Using Redis 
-
 import uuid
+import json
+import redis
+import pandas as pd
 from datetime import datetime, timedelta
 from fastapi import HTTPException
 
 from src.recommendor import recommend_group
 from src import shared
+from .schemas import UserPreference
 
-GROUPS = {}
+# Initialize Redis
+# Assuming local redis server
+redis_client = redis.Redis()
+EXPIRATION_SECONDS = 900  # 15 minutes
 
-def create_group():
-    group_id = str(uuid.uuid4())[:8]
-    GROUPS[group_id] = {
-        "participants": {},
-        "result": None,
-        "created_at": datetime.utcnow(),
-        "expires_at": datetime.utcnow() + timedelta(minutes=15)
-    }
-    return group_id
-
-def cleanup_expired_groups():
-    """
-    Removes groups that have passed their expiration time.
-    Returns the number of groups deleted.
-    """
-    now = datetime.utcnow()
-    expired_ids = [gid for gid, data in GROUPS.items() if data["expires_at"] < now]
-    
-    for gid in expired_ids:
-        del GROUPS[gid]       
-    return len(expired_ids)
-
-
-def add_user(group_id):
-
-    if group_id not in GROUPS:
+def get_group_from_redis(group_id: str):
+    try:
+        data = redis_client.get(group_id)
+    except redis.exceptions.ConnectionError:
+        raise HTTPException(status_code=503, detail="Redis connection failed")
+        
+    if not data:
         raise HTTPException(
             status_code=404,
             detail="Group not found"
         )
+    return json.loads(data)
+
+def save_group_to_redis(group_id: str, data: dict):
+    # Using setex to ensure the group expires if abandoned
+    redis_client.setex(group_id, EXPIRATION_SECONDS, json.dumps(data))
+
+def create_group():
+    group_id = str(uuid.uuid4())[:8]
+    
+
+    group_data = {
+        "participants": {},
+        "result": None,
+    }
+    
+    save_group_to_redis(group_id, group_data)
+    return group_id
+
+
+def add_user(group_id):
+    group = get_group_from_redis(group_id)
+
     ##check if group_id already computed results
-    if GROUPS[group_id]["result"] is not None:
+    if group["result"] is not None:
         raise HTTPException(
             status_code=400,
             detail="Group already computed results"
         )
 
     user_id = str(uuid.uuid4())[:6]
-    GROUPS[group_id]["participants"][user_id] = {
+    group["participants"][user_id] = {
         "preferences": None,
         "ready": False
     }
+    
+    save_group_to_redis(group_id, group)
     return user_id
 
-def submit_preferences(group_id, user_id, prefs):
+def submit_preferences(group_id, user_id, prefs: UserPreference):
+    
+    group = get_group_from_redis(group_id)
 
-    if group_id not in GROUPS:
-        raise HTTPException(
-            status_code=404,
-            detail="Group not found"
-        )
-    if user_id not in GROUPS[group_id]["participants"]:
+    if user_id not in group["participants"]:
         raise HTTPException(
             status_code=404,
             detail="User not found"
         )
+    
     ## Checking if a user has already submitted preferences
-    if GROUPS[group_id]["participants"][user_id]["ready"]:
+    if group["participants"][user_id]["ready"]:
         raise HTTPException(
             status_code=400,
             detail="User already submitted preferences"
         )
 
     try:
-        GROUPS[group_id]["participants"][user_id]["preferences"] = prefs.dict()
-        GROUPS[group_id]["participants"][user_id]["ready"] = True
+        # prefs is a Pydantic model, convert to dict for storage
+        group["participants"][user_id]["preferences"] = prefs.dict()
+        group["participants"][user_id]["ready"] = True
+        
+        save_group_to_redis(group_id, group)
         return {"status": "submitted"}
 
     except Exception as e:
@@ -85,14 +96,10 @@ def submit_preferences(group_id, user_id, prefs):
 
 ##For getting group status
 def group_status(group_id):
-    if group_id not in GROUPS:
-        raise HTTPException(
-            status_code=404,
-            detail="Group not found"
-        ) 
+    group = get_group_from_redis(group_id)
 
     try: 
-        participants = GROUPS[group_id]["participants"]
+        participants = group["participants"]
         ready_count = sum(p["ready"] for p in participants.values())
 
         return {
@@ -107,20 +114,15 @@ def group_status(group_id):
 
 ##For computing group choice
 def compute_group_choice(group_id):
-    if group_id not in GROUPS:
-        raise HTTPException(
-            status_code=404,
-            detail="Group not found"
-        )
+    group = get_group_from_redis(group_id)
     
-    
-    if not GROUPS[group_id]["participants"]:
+    if not group["participants"]:
         raise HTTPException(
             status_code=400,
             detail="Group is empty"
         )
         
-    participants = GROUPS[group_id]["participants"]
+    participants = group["participants"]
     ## all() returns true if and only if all values are true, even if one false returns false
     if not all(p["ready"] for p in participants.values()):
         raise HTTPException(
@@ -131,7 +133,7 @@ def compute_group_choice(group_id):
     try:
         users = [
             p["preferences"]
-            for p in GROUPS[group_id]["participants"].values()
+            for p in group["participants"].values()
             if p["ready"] and p["preferences"]
         ]
 
@@ -142,14 +144,18 @@ def compute_group_choice(group_id):
             )
 
         # Recommend
-        result = recommend_group(
+        # returns a pandas DataFrame
+        result_df = recommend_group(
             df_full=shared.zomato_unique,
             coord_dict=shared.coord_dict,
             users_list=users,
             top_k=10,
         )
 
-        GROUPS[group_id]["result"] = result
+        # store result as list of dicts (JSON serializable)
+        group["result"] = result_df.to_dict(orient="records")
+        
+        save_group_to_redis(group_id, group)
 
         return {"status": "computed"}
 
@@ -162,17 +168,17 @@ def compute_group_choice(group_id):
 
 ## For getting computed result
 def getComputedResult(group_id):
-    if group_id not in GROUPS:
-        raise HTTPException(
-            status_code=404,
-            detail="Group not found"
-        )
+    group = get_group_from_redis(group_id)
+
     try:
-        if GROUPS[group_id]["result"] is None:
+        if group["result"] is None:
             raise HTTPException(status_code=404, detail="Result not computed yet")
         else:
-            return GROUPS[group_id]["result"]
+            # Reconstruct DataFrame from JSON data
+            return pd.DataFrame(group["result"])
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=400,

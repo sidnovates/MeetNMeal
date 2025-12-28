@@ -37,7 +37,8 @@ def load_assets():
     print("All Assests Loaded Sucessfully !")
 
     # Start background cleanup task
-    asyncio.create_task(run_cleanup_loop())
+    ##Since using Redis which handles expiration automatically, we don't need to run cleanup loop
+    # asyncio.create_task(run_cleanup_loop())
 
 ## Checks every 2 minutes whether any group is expired or not
 async def run_cleanup_loop():
