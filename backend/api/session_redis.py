@@ -12,7 +12,7 @@ from .schemas import UserPreference
 # Initialize Redis
 # Assuming local redis server
 redis_client = redis.Redis()
-EXPIRATION_SECONDS = 900  # 15 minutes
+EXPIRATION_SECONDS = 600  # 10 minutes
 
 def get_group_from_redis(group_id: str):
     try:

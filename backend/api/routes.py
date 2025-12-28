@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from .websockets import manager
 
 from .schemas import (
     CreateGroupResponse,
@@ -26,11 +27,7 @@ from .session_redis import (
 )
 from src import shared
 
-
-
 router = APIRouter()
-
-
 
 # ─────────────────────────────────────────────
 # ➕ Create Group
@@ -60,7 +57,7 @@ def join_group_api(group_id: str):
 # 📝 Submit User Preferences
 # ─────────────────────────────────────────────
 @router.post("/group/submit/{group_id}/{user_id}")
-def submit_preferences_api(
+async def submit_preferences_api(
     group_id: str,
     user_id: str,
     prefs: UserPreference,
@@ -68,10 +65,17 @@ def submit_preferences_api(
     """
     Stores preferences for a user and marks them as ready.
     """
-
-    # GROUPS[group_id]["participants"][user_id]["preferences"] = prefs.dict()
-    # GROUPS[group_id]["participants"][user_id]["ready"] = True
-    return submit_preferences(group_id, user_id, prefs)
+    
+    result = submit_preferences(group_id, user_id, prefs)
+    
+    # Broadcast update via WebSocket
+    await manager.broadcast(group_id, {
+        "type": "USER_READY",
+        "user_id": user_id,
+        "status": "ready"
+    })
+    
+    return result
 
 # ─────────────────────────────────────────────
 # 📊 Group Status
@@ -81,18 +85,26 @@ def group_status_api(group_id: str):
     """
     Returns total users and how many are ready.
     """
+    
     return group_status(group_id)
 
 # ─────────────────────────────────────────────
 # ⚙️ Compute Group Recommendation
 # ─────────────────────────────────────────────
 @router.post("/group/compute/{group_id}")
-def compute_group_api(group_id: str):
+async def compute_group_api(group_id: str):
     """
     Runs group recommendation once all users are ready.
     """
 
-    return compute_group_choice(group_id)
+    result = compute_group_choice(group_id)
+
+    # Broadcast update via WebSocket
+    await manager.broadcast(group_id, {
+        "event": "RESULT_COMPUTED"
+    })
+    
+    return result
 
 
 # ─────────────────────────────────────────────
@@ -140,3 +152,15 @@ def fetch_result_api(group_id: str):
 
     return {"restaurants": restaurants}
 
+# # ─────────────────────────────────────────────
+# # 🔌 WebSocket Endpoint
+# # ─────────────────────────────────────────────
+@router.websocket("/ws/{group_id}/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, group_id: str, user_id: str):
+    await manager.connect(websocket, group_id)
+    try:
+        while True:
+            # Keep connection alive; currently we only push from server
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, group_id)
