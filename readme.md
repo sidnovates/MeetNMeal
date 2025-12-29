@@ -14,7 +14,7 @@
 ![Preferences](./screenshots/preferences.png)
 
 ### Results
-![Results](./screenshots/results.png)
+![Results](./screenshots/Results.png)
 
 ----
 
