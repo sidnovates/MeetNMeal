@@ -72,7 +72,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="mt-8 text-center">
+                {/* <div className="mt-8 text-center">
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100/50 text-green-700 text-xs font-bold border border-green-200/50">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -80,7 +80,7 @@ export default function Home() {
                         </span>
                         2,341 groups live right now
                     </span>
-                </div>
+                </div> */}
             </GlassCard>
         </Background>
     );

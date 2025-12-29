@@ -14,14 +14,14 @@ class UserPreference(BaseModel):
     rest_type: List[str]
     dish_pref: List[str]
     budget: int
-    lat:float
-    lng:float
+    location: str
 
 class RestaurantResponse(BaseModel):
     name: str
+    rate: Optional[float] = None
     cuisines: str
     rest_type: str
-    approx_cost_for_two_people: float
+    cost: float
     location: str
     distance_km: float
     distance_score: float

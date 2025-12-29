@@ -33,6 +33,20 @@ export const api = {
         return response.json();
     },
 
+    getResults: async (groupId) => {
+        const response = await fetch(`${BASE_URL}/group/result/${groupId}`);
+        if (!response.ok) throw new Error('Failed to fetch results');
+        return response.json();
+    },
+
+    closeGroup: async (groupId) => {
+        const response = await fetch(`${BASE_URL}/group/close/${groupId}`, {
+            method: 'POST',
+        });
+        if (!response.ok) throw new Error('Failed to close group');
+        return response.json();
+    },
+
     computeGroup: async (groupId) => {
         const response = await fetch(`${BASE_URL}/group/compute/${groupId}`, {
             method: 'POST'
@@ -44,12 +58,5 @@ export const api = {
         return response.json();
     },
 
-    getResults: async (groupId) => {
-        const response = await fetch(`${BASE_URL}/group/result/${groupId}`);
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.detail || 'Failed to fetch results');
-        }
-        return response.json();
-    }
+
 };

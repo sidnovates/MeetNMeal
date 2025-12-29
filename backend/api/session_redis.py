@@ -184,3 +184,14 @@ def getComputedResult(group_id):
             status_code=400,
             detail="Failed to get computed result"
         )
+        
+
+def close_group(group_id: str):
+    """
+    Sets the group to expire in 60 seconds.
+    """
+    if redis_client.exists(group_id):
+        # Set expiry to 30 seconds
+        redis_client.expire(group_id, 30)
+    else:
+        raise HTTPException(status_code=404, detail="Group not found")

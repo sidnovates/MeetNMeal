@@ -5,6 +5,8 @@ class WebSocketService {
         this.ws = null;
         this.handlers = {
             'USER_READY': [],
+            'USER_JOINED': [],
+            'SESSION_CLOSING': [],
             'SESSION_EXPIRED': [],
         };
     }

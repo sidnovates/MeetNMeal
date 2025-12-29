@@ -23,11 +23,21 @@ from .session_redis import (
     submit_preferences,
     group_status,
     compute_group_choice,
-    getComputedResult
+    getComputedResult,
+    close_group
 )
 from src import shared
 
 router = APIRouter()
+
+def normalize_cuisine(c: str) -> str:
+    """
+    Converts 'Middle Eastern' -> 'middle_eastern'
+    Handles 'None' -> ''
+    """
+    if not c or c.lower() == "none":
+        return ""
+    return c.lower().replace(" ", "_")
 
 # ─────────────────────────────────────────────
 # ➕ Create Group
@@ -45,11 +55,22 @@ def create_group_api():
 # ➕ Join Group
 # ─────────────────────────────────────────────
 @router.post("/group/join/{group_id}", response_model=JoinGroupResponse)
-def join_group_api(group_id: str):
+async def join_group_api(group_id: str):
     """
     Adds a user to an existing group and returns a user_id.
     """
     user_id = add_user(group_id)
+    
+    # Get updated status
+    status = group_status(group_id)
+    
+    # Broadcast update via WebSocket
+    await manager.broadcast(group_id, {
+        "type": "USER_JOINED",
+        "joined_count": status["total"],
+        "ready_count": status["ready"]
+    })
+    
     return {"user_id": user_id}
 
 
@@ -66,13 +87,28 @@ async def submit_preferences_api(
     Stores preferences for a user and marks them as ready.
     """
     
+    # Normalize cuisines (e.g. "Middle Eastern" -> "middle_eastern")
+    if prefs.cuisines:
+        prefs.cuisines = [normalize_cuisine(c) for c in prefs.cuisines]
+
+    if prefs.rest_type:
+        prefs.rest_type = [normalize_cuisine(c) for c in prefs.rest_type]
+
+    if prefs.dish_pref:
+        prefs.dish_pref = [normalize_cuisine(d) for d in prefs.dish_pref]
+
     result = submit_preferences(group_id, user_id, prefs)
+
+    # Get updated status to send correct counts
+    status = group_status(group_id)
     
     # Broadcast update via WebSocket
     await manager.broadcast(group_id, {
         "type": "USER_READY",
         "user_id": user_id,
-        "status": "ready"
+        "status": "ready",
+        "joined_count": status["total"],
+        "ready_count": status["ready"]
     })
     
     return result
@@ -118,22 +154,28 @@ def fetch_result_api(group_id: str):
 
     df = getComputedResult(group_id)
 
-    filtered_df = df[
-        [
-            "name",
-            "cuisines",
-            "rest_type",
-            "approx_cost(for two people)",
-            "location",
-            "distance_km",
-            "distance_score",
-            "final_score_adjusted",
-        ]
-    ].copy()
+    # Select columns safely
+    desired_cols = [
+        "name",
+        "rate",
+        "cuisines",
+        "rest_type",
+        "approx_cost(for two people)",
+        "location",
+        "distance_km",
+        "distance_score",
+        "final_score_adjusted",
+    ]
+    
+    existing_cols = [c for c in desired_cols if c in df.columns]
+    filtered_df = df[existing_cols].copy()
+
+    # Handle NaN values which crash JSON serialization
+    filtered_df = filtered_df.fillna("")
 
     filtered_df = filtered_df.rename(
         columns={
-            "approx_cost(for two people)": "approx_cost_for_two_people"
+            "approx_cost(for two people)": "cost"
         }
     )
 
@@ -151,6 +193,24 @@ def fetch_result_api(group_id: str):
     restaurants = filtered_df.to_dict(orient="records")
 
     return {"restaurants": restaurants}
+
+# ─────────────────────────────────────────────
+# 🏁 Close Group Session (Expire in 1 min)
+# ─────────────────────────────────────────────
+@router.post("/group/close/{group_id}")
+async def close_group_api(group_id: str):
+    """
+    Triggers 60s expiration for the group and notifies users.
+    """
+    close_group(group_id)
+    
+    await manager.broadcast(group_id, {
+        "type": "SESSION_CLOSING",
+        "time_left": 30,
+        "message": "Session ending in 30 seconds"
+    })
+    
+    return {"status": "closing"}
 
 # # ─────────────────────────────────────────────
 # # 🔌 WebSocket Endpoint

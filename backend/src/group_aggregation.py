@@ -45,12 +45,25 @@ def aggregate_group_budget(users_list):
 
     return int(np.median(budgets))
 
+from src import shared
+
 def aggregate_group_location(users_list):
-    lats = [u["lat"] for u in users_list if u.get("lat") is not None]
-    lngs = [u["lng"] for u in users_list if u.get("lng") is not None]
+    lats = []
+    lngs = []
+
+    for u in users_list:
+        loc_name = u.get("location")
+        if loc_name:
+            # Check exact or lower case match
+            key = loc_name.lower().strip()
+            if key in shared.coord_dict:
+                lat, lng = shared.coord_dict[key]
+                lats.append(lat)
+                lngs.append(lng)
 
     if not lats or not lngs:
-        return None, None
+        # Default to Bangalore center if no valid locations found
+        return 12.9716, 77.5946
 
     group_lat = sum(lats) / len(lats)
     group_lng = sum(lngs) / len(lngs)
