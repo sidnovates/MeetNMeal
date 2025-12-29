@@ -7,11 +7,14 @@
 
 ## 📸 Interface Preview
 
-<p align="center">
-  <img src="./screenshots/home_screen.png" alt="Home Screen" width="30%" />
-  <img src="./screenshots/preferences.png" alt="Preferences" width="30%" />
-  <img src="./screenshots/results.png" alt="Results" width="30%" />
-</p>
+### Home Screen
+![Home Screen](./screenshots/home_screen.png)
+
+### Preferences
+![Preferences](./screenshots/preferences.png)
+
+### Results
+![Results](./screenshots/results.png)
 
 ---
 
