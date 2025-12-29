@@ -7,8 +7,7 @@ __pycache__
 #Ignore Data Files
 backend/data/zomato_allBranches.pkl
 backend/data/zomato_uniqueBranches.pkl
-backend/data/zomato_uniqueBranches.zip
-backend/data/zomato_uniqueBranches.zip
+
 
 #Ignore Node Modules
 node_modules
