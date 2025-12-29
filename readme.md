@@ -16,7 +16,7 @@
 ### Results
 ![Results](./screenshots/results.png)
 
----
+----
 
 ## ⚡ Technical Highlights
 
