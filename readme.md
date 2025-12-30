@@ -1,4 +1,33 @@
-# 🍽️ MeetNMeal - Real-time Collaborative Dining Recommendation Engine
+<br />
+<div align="center">
+
+  <img src="./screenshots/logo.png" alt="MeetNMeal Logo" width="100">
+
+  <h1 align="center">MeetNMeal</h1>
+
+  <p align="center">
+    <strong>Real-time Collaborative Dining Recommendation Engine</strong>
+    <br />
+    <br />
+    <a href="#-getting-started">Getting Started</a>
+    ·
+    <a href="#-interface-preview">View Screenshots</a>
+    ·
+    <a href="https://github.com/sidnovates/MeetNMeal/issues">Report Bug</a>
+  </p>
+
+  <p align="center">
+    <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
+    <img src="https://img.shields.io/badge/React_Vite-61DAFB?style=flat-square&logo=react&logoColor=black" />
+    <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" />
+  </p>
+</div>
+
+<br />
+
+---
+
 
 > **Problem**: Choosing a restaurant with a group is often chaotic and time-consuming.  
 > **Solution**: MeetNMeal is a real-time collaborative system that aggregates group preferences, resolves conflicts via a weighted scoring algorithm, and delivers optimal dining recommendations instantly.
@@ -10,11 +39,17 @@
 ### Home Screen
 ![Home Screen](./screenshots/home_screen.png)
 
+<details>
+<summary><b>View more interface screenshots</b></summary>
+<br>
+
 ### Preferences
 ![Preferences](./screenshots/preferences.png)
 
 ### Results
-![Results](./screenshots/Results.png)
+![Results](./screenshots/results.png)
+
+</details>
 
 ----
 
@@ -51,7 +86,27 @@ To ensure bounded memory usage in high-traffic scenarios, we implement an automa
 
 ---
 
-## 🚀 Redis Session Management
+## � Real-time Event Architecture
+
+The system employs a custom **WebSocket Protocol** managed by a singleton `ConnectionManager`, enabling sub-millisecond state synchronization across all clients.
+
+### WebSocket Manager Pattern
+*   **Singleton Instance**: A single `ConnectionManager` instance tracks all active socket connections mapped by `group_id`.
+*   **Broadcast Capability**: Server-side events are pushed asynchronously to all connected clients in a specific group.
+*   **Graceful Teardown**: Includes logic to safely close connections and clean up memory when a group session expires.
+
+### Event Protocol
+| Event Type | Trigger | Payload Data | description |
+| :--- | :--- | :--- | :--- |
+| `USER_JOINED` | User enters group | `joined_count`, `ready_count` | Live-updates the "Waiting for users" counter. |
+| `USER_READY` | Preferences submitted | `user_id`, `status` | Marks a specific user avatar as "Ready" in the lobby. |
+| `RESULT_COMPUTED` | Algorithm finishes | `-` | Triggers immediate navigation to the Results page for all users. |
+| `SESSION_CLOSING` | 29m mark reached | `time_left` | Displays a "Session ending..." countdown overlay. |
+| `SESSION_EXPIRED` | TTL (30m) reached | `message` | Forces client disconnect and redirects to Home. |
+
+---
+
+## �🚀 Redis Session Management
 
 The system supports a pluggable session backend, allowing seamless switching between **In-Memory** (for development) and **Redis** (for production).
 
