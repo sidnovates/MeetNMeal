@@ -5,10 +5,11 @@
 
   <h1 align="center">MeetNMeal</h1>
 
+  <h2 align="center">
+    Real-time Collaborative Dining Recommendation Engine
+  </h2>
+
   <p align="center">
-    <strong>Real-time Collaborative Dining Recommendation Engine</strong>
-    <br />
-    <br />
     <a href="#-getting-started">Getting Started</a>
     ·
     <a href="#-interface-preview">View Screenshots</a>
