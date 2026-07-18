@@ -59,6 +59,10 @@ export default function Preferences() {
                     setReadyCount(data.ready_count);
                 });
 
+                const unsubComputed = wsService.on('RESULT_COMPUTED', () => {
+                    navigate('/results');
+                });
+
                 // If backend sent session expired
                 const unsubExpired = wsService.on('SESSION_EXPIRED', () => {
                     toast.error("Session Expired!");
@@ -68,6 +72,7 @@ export default function Preferences() {
                 return () => {
                     unsubReady && unsubReady();
                     unsubJoined && unsubJoined();
+                    unsubComputed && unsubComputed();
                     unsubExpired && unsubExpired();
                 };
             } catch (err) {
@@ -76,19 +81,6 @@ export default function Preferences() {
         };
         fetchStatus();
     }, [session.groupId, navigate]);
-
-    // ... (rest of the file until the return statement)
-
-    <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-            <div className="text-4xl font-extrabold text-slate-800">{joinedCount}</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Joined</div>
-        </div>
-        <div className="space-y-2">
-            <div className="text-4xl font-extrabold text-slate-800">{readyCount}</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ready</div>
-        </div>
-    </div>
 
     const toggleSelection = (category, item) => {
         if (isSubmitted) return;

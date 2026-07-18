@@ -9,9 +9,15 @@ from src.recommendor import recommend_group
 from src import shared
 from .schemas import UserPreference
 
+import os
 # Initialize Redis
 # Assuming local redis server
-redis_client = redis.Redis()
+# redis_client = redis.Redis()
+
+
+# For Deployment
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 EXPIRATION_SECONDS = 600  # 10 minutes
 
 def get_group_from_redis(group_id: str):

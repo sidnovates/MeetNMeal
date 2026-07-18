@@ -43,8 +43,12 @@ async def run_cleanup_loop():
 
 async def redis_expiration_listener():
     try:
-        # Use a separate async connection for the subscriber
-        r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+        # for running locally
+        # r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+
+        # For deployment
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        r = redis.from_url(redis_url, decode_responses=True)
         
         # Enable keyspace notifications for 'Expired' events if not already enabled
         await r.config_set("notify-keyspace-events", "Ex")

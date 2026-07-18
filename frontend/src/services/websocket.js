@@ -1,5 +1,7 @@
-const WS_URL = 'ws://localhost:8000';
+const WS_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
 
+//For locally
+//const WS_URL = 'ws://localhost:8000';
 class WebSocketService {
     constructor() {
         this.ws = null;
