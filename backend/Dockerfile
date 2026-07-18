@@ -20,5 +20,5 @@ COPY . .
 # Expose port (Railway dynamically binds $PORT)
 EXPOSE 8000
 
-# Start Uvicorn server using shell form to allow $PORT expansion
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start Uvicorn server on fixed port 8000 to match Railway networking
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
