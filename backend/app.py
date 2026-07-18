@@ -6,10 +6,10 @@ from lifecycle import load_assets, redis_expiration_listener
 
 app = FastAPI(title="MeetNMeal API")
 
-# Enable CORS
+# Enable CORS for all origins (Local, Vercel production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
