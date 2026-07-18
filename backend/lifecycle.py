@@ -13,17 +13,30 @@ from src import shared
 from src.distanceCal import load_location_coordinates
 from api.session_store import cleanup_expired_groups
 
+import zipfile
+
 def load_assets():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_DIR = os.path.join(BASE_DIR, "data")
 
+    # Auto-extract zipped pickle files if missing in environment
+    unique_pkl = os.path.join(DATA_DIR, "zomato_uniqueBranches.pkl")
+    if not os.path.exists(unique_pkl):
+        print("Extracting zomato_uniqueBranches.zip...")
+        with zipfile.ZipFile(os.path.join(DATA_DIR, "zomato_uniqueBranches.zip"), 'r') as zip_ref:
+            zip_ref.extractall(DATA_DIR)
+
+    all_pkl = os.path.join(DATA_DIR, "zomato_allBranches.pkl")
+    if not os.path.exists(all_pkl):
+        print("Extracting zomato_allBranches.zip...")
+        with zipfile.ZipFile(os.path.join(DATA_DIR, "zomato_allBranches.zip"), 'r') as zip_ref:
+            zip_ref.extractall(DATA_DIR)
+
     shared.vectorizer = pickle.load(open(os.path.join(DATA_DIR, "dish_vectorizer.pkl"), "rb"))
     shared.tfidf_matrix = pickle.load(open(os.path.join(DATA_DIR, "dish_tfidf_matrix.pkl"), "rb"))
 
-    shared.zomato_unique = pd.read_pickle(
-        os.path.join(DATA_DIR, "zomato_uniqueBranches.pkl")
-    )
-    shared.zomato = pd.read_pickle(os.path.join(DATA_DIR, "zomato_allBranches.pkl"))
+    shared.zomato_unique = pd.read_pickle(unique_pkl)
+    shared.zomato = pd.read_pickle(all_pkl)
 
     shared.coord_dict = load_location_coordinates(
         os.path.join(DATA_DIR, "BLRCoordinates.csv")
@@ -43,15 +56,14 @@ async def run_cleanup_loop():
 
 async def redis_expiration_listener():
     try:
-        # for running locally
-        # r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-
-        # For deployment
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         r = redis.from_url(redis_url, decode_responses=True)
         
         # Enable keyspace notifications for 'Expired' events if not already enabled
-        await r.config_set("notify-keyspace-events", "Ex")
+        try:
+            await r.config_set("notify-keyspace-events", "Ex")
+        except Exception as config_err:
+            print("Skipped config_set (Cloud Redis handles configuration):", config_err)
         
         pubsub = r.pubsub()
         # Subscribe to expiry events on DB 0
