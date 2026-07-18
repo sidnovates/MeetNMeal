@@ -11,6 +11,3 @@ backend/data/zomato_uniqueBranches.pkl
 
 #Ignore Node Modules
 node_modules
-
-package-lock.json
-package.json
