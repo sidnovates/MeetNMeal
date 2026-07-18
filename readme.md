@@ -115,20 +115,21 @@ The system employs a custom **WebSocket Protocol** managed by a singleton `Conne
 
 ---
 
-## �🚀 Redis Session Management
+## 🚀 Redis Session Management & Upstash Cloud
 
-The system supports a pluggable session backend, allowing seamless switching between **In-Memory** (for development) and **Redis** (for production).
+The system supports a pluggable session backend, allowing seamless switching between **Local Redis / In-Memory** (for development) and **Upstash Serverless Cloud Redis** (for production).
 
-### Why Redis?
-*   **Persistence**: Data survives application restarts.
-*   **Automatic TTL**: Redis natively handles key expiration, removing the need for manual cleanup loops.
-*   **Scalability**: Allows horizontal scaling of backend workers sharing the same state.
+### Why Redis & Upstash?
+*   **Serverless Cloud Redis**: Powered by **Upstash** over secure TLS (`rediss://`), eliminating server maintenance.
+*   **Automatic TTL & Key Expiration**: Redis natively handles 10-minute session expiry (`EXPIRATION_SECONDS = 600`), automatically triggering memory cleanup.
+*   **Multi-Instance State Sync**: Allows horizontal scaling of backend workers on Railway sharing the exact same group state.
 
 ### Implementation Details
 *   **Switching Stores**: Toggle between `session_store` and `session_redis` imports in `api/routes.py`.
-*   **Redis Setup**:
+*   **Upstash Connection**: Configured via the `REDIS_URL` environment variable (`rediss://default:...@upstash.io:6379`).
+*   **Local Redis CLI Inspection**:
     ```bash
-    # Start Redis Server
+    # Start Local Redis Server
     redis-server
     
     # Inspect Data CLI
