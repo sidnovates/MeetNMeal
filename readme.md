@@ -20,8 +20,16 @@
   <p align="center">
     <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
     <img src="https://img.shields.io/badge/React_Vite-61DAFB?style=flat-square&logo=react&logoColor=black" />
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
     <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" />
+    <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
+    <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" />
+  </p>
+
+  <p align="center">
+    <a href="https://meet-n-meal.vercel.app" target="_blank"><strong>🌐 Live Web Application</strong></a>
+    &nbsp;|&nbsp;
+    <a href="https://meetnmeal-production.up.railway.app/docs" target="_blank"><strong>⚡ Live API Documentation</strong></a>
   </p>
 </div>
 
@@ -56,11 +64,11 @@
 
 ## ⚡ Technical Highlights
 
-### 🏗️ Architecture
-*   **Frontend**: React (Vite) + Tailwind CSS for a responsive, modern UI.
-*   **Backend**: FastAPI (Python) for high-performance asynchronous request handling.
-*   **Real-time**: WebSockets for instant state synchronization (User Joins, Ready Status, Results).
-*   **State Management**: Redis (with async `redis-py`) for scalable, TTL-managed session storage.
+### 🏗️ Architecture & Cloud Infrastructure
+*   **Frontend**: React (Vite) + Tailwind CSS — Deployed on **Vercel** ([meet-n-meal.vercel.app](https://meet-n-meal.vercel.app)).
+*   **Backend**: Containerized with **Docker** & FastAPI — Deployed on **Railway Cloud** ([meetnmeal-production.up.railway.app](https://meetnmeal-production.up.railway.app)).
+*   **Real-time**: WebSockets for instant state synchronization across clients (User Joins, Ready Status, Results).
+*   **State Management**: Managed Cloud **Redis** on **Upstash** for scalable TTL session management.
 
 ### 🧠 Recommendation Engine
 *   **Hybrid Filtering**: Combines vector-based content filtering (TF-IDF on dish descriptions) with multi-criteria weighted scoring.
